@@ -368,7 +368,8 @@
                 <mesh filename="package://phantomx_pincher_description/meshes/DAE/acopleSuctionCupGripper.dae"
                 scale="0.001 0.001 0.001" />
             </geometry>
-            <material name="blue" />
+            <!-- Color URDF solo con collision_colors:=true; si no, se ven los colores del .dae -->
+            <xacro:if value="$(arg collision_colors)"><material name="blue" /></xacro:if>
         </visual>
         <collision>
             <origin xyz="0 -${0.0215/2} 0.0173" rpy="-${PI/2} 0 0"/>
@@ -402,7 +403,8 @@
                 <mesh filename="package://phantomx_pincher_description/meshes/DAE/suctionCupGripper.dae"
                 scale="0.001 0.001 0.001" />
             </geometry>
-            <material name="blue" />
+            <!-- Color URDF solo con collision_colors:=true; si no, se ven los colores del .dae -->
+            <xacro:if value="$(arg collision_colors)"><material name="blue" /></xacro:if>
         </visual>
         <collision>
             <origin xyz="-0.0585 0.010 -0.024" rpy="${PI/2} 0 0"/>

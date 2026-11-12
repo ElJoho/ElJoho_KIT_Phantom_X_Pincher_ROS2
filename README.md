@@ -9,6 +9,47 @@
 ![Vista general del kit en RViz](rvizKIT.png)
 
 ---
+## VERSIONES DE ROS 2 (RAMAS DEL REPOSITORIO)
+
+Este repositorio tiene una rama para cada versión de ROS 2. Use la rama que corresponde a la versión instalada en su Raspberry Pi o PC:
+
+| Rama | Versión de ROS 2 | Ubuntu | Estado |
+|---|---|---|---|
+| `main` | ROS 2 Lyrical | 26.04 LTS | Rama principal. Probada con hardware simulado (fake); el robot real todavía no se ha probado en Lyrical |
+| `jazzy` | ROS 2 Jazzy | 24.04 LTS | Código original para Jazzy, sin los cambios de Lyrical |
+
+Si no sabe qué versión tiene instalada, ejecute en una terminal:
+
+```bash
+echo $ROS_DISTRO
+```
+
+**Clonar la rama para ROS 2 Lyrical (`main`):**
+
+```bash
+git clone https://github.com/ElJoho/ElJoho_KIT_Phantom_X_Pincher_ROS2.git
+```
+
+**Clonar la rama para ROS 2 Jazzy (`jazzy`):**
+
+```bash
+git clone -b jazzy https://github.com/ElJoho/ElJoho_KIT_Phantom_X_Pincher_ROS2.git
+```
+
+Si ya clonó el repositorio, puede cambiar de rama con `git switch jazzy` o `git switch main` (guarde o confirme sus cambios antes de cambiar de rama).
+
+Principales diferencias de `main` (Lyrical) respecto a `jazzy`:
+
+- Se quitaron las dependencias de Gazebo (no existen para Lyrical). El lanzamiento `view_gz.launch.py` ya no funciona.
+- No es necesario ejecutar `vcs import` con `phantomx_pincher.repos`.
+- `phantomx_pincher_commander_cpp` se corrigió para compilar en Lyrical.
+- Se corrigió la configuración de ros2_control y de los spawners para que Plan & Execute funcione en Lyrical.
+- RViz se adaptó a una pantalla pequeña (848x480): use `rviz_scale:=1.0` al lanzar si trabaja en un monitor normal.
+- El modelo en RViz usa los colores de los `.dae`; para ver los bloques de colisión con colores use `collision_colors:=true` (ver [Colores del modelo y bloques de colisión](#colores-del-modelo-y-bloques-de-colisión-collision_colors)).
+
+> **Nota:** las guías de instalación de la carpeta `guias/Setup` todavía describen la instalación de ROS 2 Jazzy en Ubuntu 24.04.
+
+---
 ## EN CASO DE EMERGENCIA
 
 Si han dañado el sistema operativo de la raspberry pi instalando algo, pueden reestablecer el sistema con ubuntu 24.04 y todo instalado y configurado (nomachine,ros2, opencv, etc) siguiendo el tutorial del repositorio ([UNPi5_Image_Ubuntu24_04](https://github.com/labsir-un/UNPi5_Image_Ubuntu24_04.git))
@@ -157,6 +198,28 @@ En la siguiente guia se encuentra una serie de pasos para añadir elementos xacr
 > siguiente comando:
 
 > `ros2 launch phantomx_pincher_bringup phantomx_pincher.launch.py use_suction_cup:=true`
+
+### Colores del modelo y bloques de colisión (`collision_colors`)
+
+Por defecto el modelo en RViz se ve con los colores propios de los archivos `.dae` (los colores del modelo 3D). Si quiere revisar los bloques de colisión con colores, lance el robot con la variable `collision_colors:=true`:
+
+```bash
+ros2 launch phantomx_pincher_bringup phantomx_pincher.launch.py collision_colors:=true
+```
+
+Luego, en RViz, en la pestaña **Displays**, abra **MotionPlanning → Scene Robot** y active **Show Robot Collision**. Se recomienda desactivar **Show Robot Visual** mientras revisa las colisiones, para ver solo los bloques de colisión. También puede bajar **Robot Alpha** (por ejemplo a 0.5) para ver el modelo a través de ellos.
+
+| `collision_colors` | Modelo visual | Bloques de colisión |
+|---|---|---|
+| `false` (por defecto) | Colores de los `.dae` | Casi todos en **rojo** |
+| `true` | Colores planos del URDF | Colores del URDF (gris, negro, rojo, amarillo, ...) |
+
+**¿Por qué las colisiones se ven rojas con `collision_colors:=false`?** RViz usa un solo color por link: el `<material>` del `<visual>` del link, y lo aplica tanto al modelo visual como a sus colisiones (RViz ignora el `<material>` que se ponga dentro de `<collision>`). Para que se vean los colores de los `.dae`, los visuales no llevan `<material>`, y entonces RViz pinta las colisiones con su color por defecto, que es rojo. Por eso no es posible ver al mismo tiempo los colores de los `.dae` y las colisiones con color.
+
+- La canastilla y la zona circular de recolección conservan su color en ambos casos porque su modelo visual es un `.stl`, que no tiene colores propios, y siempre lleva `<material>`.
+- En las canecas, el bloque de colisión (`canecaGrande.stl`) tiene casi la misma forma y posición que el modelo visual, por eso el rojo y el color original se mezclan a parches. Desactive **Show Robot Visual** para verlas bien.
+
+> **Nota:** `collision_colors` se lee solo al arrancar, así que para cambiarlo hay que cerrar y volver a lanzar. Se puede combinar con otras variables, por ejemplo `use_suction_cup:=true collision_colors:=true`. También funciona con `view.launch.py` y `display.launch.py` del paquete `phantomx_pincher_description` (allí la opción se llama **Collision Enabled** en el display **RobotModel**).
 
 ---
 

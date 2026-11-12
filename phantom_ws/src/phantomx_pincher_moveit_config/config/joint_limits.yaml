@@ -12,22 +12,42 @@ joint_limits:
     has_velocity_limits: true
     max_velocity: 0.52359878
     has_acceleration_limits: true
-    max_acceleration: 1.5707963
+    # 0.5 (antes 1.5707963): el brazo tarda ~1 s en llegar a su velocidad máxima y en frenar
+    # (tiempo = max_velocity / max_acceleration), así arranca y para suavemente.
+    max_acceleration: 0.5
+    # Ruckig (AddRuckigTrajectorySmoothing): limita el jerk para arrancar y frenar suavemente.
+    has_jerk_limits: true
+    max_jerk: 1.0
   phantomx_pincher_arm_shoulder_lift_joint:
     has_velocity_limits: true
     max_velocity: 0.52359878
     has_acceleration_limits: true
-    max_acceleration: 1.5707963
+    # 0.5 (antes 1.5707963): el brazo tarda ~1 s en llegar a su velocidad máxima y en frenar
+    # (tiempo = max_velocity / max_acceleration), así arranca y para suavemente.
+    max_acceleration: 0.5
+    # Ruckig (AddRuckigTrajectorySmoothing): limita el jerk para arrancar y frenar suavemente.
+    has_jerk_limits: true
+    max_jerk: 1.0
   phantomx_pincher_arm_shoulder_pan_joint:
     has_velocity_limits: true
     max_velocity: 0.52359878
     has_acceleration_limits: true
-    max_acceleration: 1.5707963
+    # 0.5 (antes 1.5707963): el brazo tarda ~1 s en llegar a su velocidad máxima y en frenar
+    # (tiempo = max_velocity / max_acceleration), así arranca y para suavemente.
+    max_acceleration: 0.5
+    # Ruckig (AddRuckigTrajectorySmoothing): limita el jerk para arrancar y frenar suavemente.
+    has_jerk_limits: true
+    max_jerk: 1.0
   phantomx_pincher_arm_wrist_flex_joint:
     has_velocity_limits: true
     max_velocity: 0.52359878
     has_acceleration_limits: true
-    max_acceleration: 1.5707963
+    # 0.5 (antes 1.5707963): el brazo tarda ~1 s en llegar a su velocidad máxima y en frenar
+    # (tiempo = max_velocity / max_acceleration), así arranca y para suavemente.
+    max_acceleration: 0.5
+    # Ruckig (AddRuckigTrajectorySmoothing): limita el jerk para arrancar y frenar suavemente.
+    has_jerk_limits: true
+    max_jerk: 1.0
   phantomx_pincher_gripper_finger1_joint:
     has_position_limits: true
     # Límites en metros POR DEDO medidos experimentalmente en el hardware real.
@@ -46,6 +66,8 @@ joint_limits:
     # 1.0 rad/s² is a safe value consistent with the arm joints. The gripper's very
     # low max_velocity (0.01 rad/s) already ensures slow, gentle movement regardless.
     max_acceleration: 1.0
+    has_jerk_limits: true
+    max_jerk: 10.0
   phantomx_pincher_gripper_finger2_joint:
     has_position_limits: true
     # Mismos límites que finger1: ambos dedos son simétricos y usan el mismo servo.
@@ -57,3 +79,5 @@ joint_limits:
     has_acceleration_limits: true
     # Matches finger1 for symmetric gripper behaviour.
     max_acceleration: 1.0
+    has_jerk_limits: true
+    max_jerk: 10.0

@@ -98,6 +98,10 @@
        false → solo queda el acople (coupling_tool_end_effector_link) -->
   <xacro:arg name="use_suction_cup" default="false"/>
 
+  <!-- collision_colors: ver la explicación en kit.xacro (false → colores de los .dae,
+       true → colores del URDF en visual y colisión). -->
+  <xacro:arg name="collision_colors" default="false"/>
+
 
   <!-- ============================================================ -->
   <!-- Propiedades internas                                         -->

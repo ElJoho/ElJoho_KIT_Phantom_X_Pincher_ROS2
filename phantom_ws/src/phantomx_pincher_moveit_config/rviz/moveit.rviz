@@ -552,7 +552,7 @@ Visualization Manager:
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 509
+  Height: 407
   Hide Left Dock: false
   Hide Right Dock: true
   MotionPlanning:
@@ -568,6 +568,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: true
-  Width: 1060
+  Width: 848
   X: 0
   Y: 0

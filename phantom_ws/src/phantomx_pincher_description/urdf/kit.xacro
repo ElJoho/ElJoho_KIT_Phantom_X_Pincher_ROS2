@@ -13,6 +13,16 @@
   <xacro:property name="global_rotation_rpy" value="0 -${PI/2} 0" />
 
 
+  <!-- collision_colors (false por defecto):
+       false → los .dae se ven con sus propios colores (los del modelo 3D).
+       true  → se usan los colores <material> del URDF. RViz pinta con ese color
+               toda la geometría del link (visual y colisión), así que sirve para
+               distinguir los bloques de colisión al activar "Show Robot Collision"
+               (MoveIt) o "Collision Enabled" (RobotModel).
+       RViz ignora <material> dentro de <collision>: el color de la colisión
+       siempre sale del <material> del <visual> del link. -->
+  <xacro:arg name="collision_colors" default="false"/>
+
   <!-- ============================= -->
   <!-- 🎨 Global Material Definitions -->
   <!-- ============================= -->
@@ -36,7 +46,8 @@
         <mesh filename="package://phantomx_pincher_description/meshes/DAE/ensambleBase.dae"
               scale="0.001 0.001 0.001" />
       </geometry>
-      <material name="gray" />
+      <!-- Color URDF solo con collision_colors:=true; si no, se ven los colores del .dae -->
+      <xacro:if value="$(arg collision_colors)"><material name="gray" /></xacro:if>
     </visual>
     <collision> <!-- base -->
       <origin xyz="0.155 0.0 0.0045" rpy="0 0 -${PI/2}" />
@@ -94,7 +105,8 @@
         <mesh filename="package://phantomx_pincher_description/meshes/DAE/ensambleSoporteC270Webcam.dae"
               scale="0.001 0.001 0.001" />
       </geometry>
-      <material name="purple" />
+      <!-- Color URDF solo con collision_colors:=true; si no, se ven los colores del .dae -->
+      <xacro:if value="$(arg collision_colors)"><material name="purple" /></xacro:if>
     </visual>
     <collision> <!-- mastil -->
         <origin xyz="0.0 0.0 ${0.353 - 0.005}" rpy="0 0 0" />
@@ -134,7 +146,8 @@
         <mesh filename="package://phantomx_pincher_description/meshes/DAE/ensambleBaseBrazo.dae"
               scale="0.001 0.001 0.001" />
       </geometry>
-      <material name="black" />
+      <!-- Color URDF solo con collision_colors:=true; si no, se ven los colores del .dae -->
+      <xacro:if value="$(arg collision_colors)"><material name="black" /></xacro:if>
     </visual>
     <collision> <!-- base brazo -->
         <origin xyz="-0.01325 0.0 -${0.024 - 0.005}" rpy="${PI} 0 ${PI/2}" />
@@ -189,7 +202,8 @@
         <mesh filename="package://phantomx_pincher_description/meshes/DAE/ensambleAirpump.dae"
               scale="0.001 0.001 0.001" />
       </geometry>
-      <material name="black" />
+      <!-- Color URDF solo con collision_colors:=true; si no, se ven los colores del .dae -->
+      <xacro:if value="$(arg collision_colors)"><material name="black" /></xacro:if>
     </visual>
     
     <collision> <!-- carcasa arimpump -->
@@ -220,7 +234,8 @@
         <mesh filename="package://phantomx_pincher_description/meshes/DAE/canecaRojo.dae"
               scale="0.001 0.001 0.001" />
       </geometry>
-      <material name="red" />
+      <!-- Color URDF solo con collision_colors:=true; si no, se ven los colores del .dae -->
+      <xacro:if value="$(arg collision_colors)"><material name="red" /></xacro:if>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 -${PI/2}" />
@@ -244,7 +259,8 @@
         <mesh filename="package://phantomx_pincher_description/meshes/DAE/canecaAmarilla.dae"
               scale="0.001 0.001 0.001" />
       </geometry>
-      <material name="yellow" />
+      <!-- Color URDF solo con collision_colors:=true; si no, se ven los colores del .dae -->
+      <xacro:if value="$(arg collision_colors)"><material name="yellow" /></xacro:if>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 ${PI/2}" />
@@ -268,7 +284,8 @@
         <mesh filename="package://phantomx_pincher_description/meshes/DAE/canecaAzul.dae"
               scale="0.001 0.001 0.001" />
       </geometry>
-      <material name="blue" />
+      <!-- Color URDF solo con collision_colors:=true; si no, se ven los colores del .dae -->
+      <xacro:if value="$(arg collision_colors)"><material name="blue" /></xacro:if>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 ${PI*((180-25.5)/180)}" />
@@ -292,7 +309,8 @@
         <mesh filename="package://phantomx_pincher_description/meshes/DAE/canecaVerde.dae"
               scale="0.001 0.001 0.001" />
       </geometry>
-      <material name="green" />
+      <!-- Color URDF solo con collision_colors:=true; si no, se ven los colores del .dae -->
+      <xacro:if value="$(arg collision_colors)"><material name="green" /></xacro:if>
     </visual>
 
     <collision>
@@ -318,7 +336,8 @@
         <mesh filename="package://phantomx_pincher_description/meshes/DAE/ensambleRaspberrypi.dae"
               scale="0.001 0.001 0.001" />
       </geometry>
-      <material name="orange" />
+      <!-- Color URDF solo con collision_colors:=true; si no, se ven los colores del .dae -->
+      <xacro:if value="$(arg collision_colors)"><material name="orange" /></xacro:if>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -407,7 +426,8 @@
         <mesh filename="package://phantomx_pincher_description/meshes/DAE/ensambleMultitoma.dae"
               scale="0.001 0.001 0.001" />
       </geometry>
-      <material name="yellow" />
+      <!-- Color URDF solo con collision_colors:=true; si no, se ven los colores del .dae -->
+      <xacro:if value="$(arg collision_colors)"><material name="yellow" /></xacro:if>
     </visual>
 
     <visual> <!-- Arbotix -->

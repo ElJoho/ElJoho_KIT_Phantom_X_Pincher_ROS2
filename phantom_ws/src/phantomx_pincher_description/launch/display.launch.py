@@ -28,6 +28,7 @@ def generate_launch_description() -> LaunchDescription:
     prefix = LaunchConfiguration("prefix")
     collision = LaunchConfiguration("collision")
     mimic_finger_joints = LaunchConfiguration("mimic_finger_joints")
+    collision_colors = LaunchConfiguration("collision_colors")
     rviz_config = LaunchConfiguration("rviz_config")
     use_sim_time = LaunchConfiguration("use_sim_time")
     log_level = LaunchConfiguration("log_level")
@@ -52,6 +53,9 @@ def generate_launch_description() -> LaunchDescription:
             " ",
             "mimic_finger_joints:=",
             mimic_finger_joints,
+            " ",
+            "collision_colors:=",
+            collision_colors,
         ]
     )
     robot_description = {
@@ -136,6 +140,14 @@ def generate_declared_arguments() -> List[DeclareLaunchArgument]:
             "mimic_finger_joints",
             default_value="true",
             description="Flag to enable mimicking of the finger joints.",
+        ),
+        DeclareLaunchArgument(
+            "collision_colors",
+            default_value="false",
+            description=(
+                "If 'true', use the URDF <material> colors (visual and collision geometry). "
+                "If 'false', show the colors of the .dae meshes."
+            ),
         ),
         # Miscellaneous
         DeclareLaunchArgument(
