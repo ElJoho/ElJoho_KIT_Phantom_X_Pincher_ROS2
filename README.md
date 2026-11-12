@@ -45,6 +45,7 @@ Principales diferencias de `main` (Lyrical) respecto a `jazzy`:
 - `phantomx_pincher_commander_cpp` se corrigió para compilar en Lyrical.
 - Se corrigió la configuración de ros2_control y de los spawners para que Plan & Execute funcione en Lyrical.
 - RViz se adaptó a una pantalla pequeña (848x480): use `rviz_scale:=1.0` al lanzar si trabaja en un monitor normal.
+- MoveIt genera menos puntos por trayectoria (uno cada 0.2 s en vez de 0.1 s). Se puede cambiar con el argumento `trajectory_resample_dt` (ver [Puntos de la trayectoria](phantom_ws/src/phantomx_pincher_moveit_config/readme.md#puntos-de-la-trayectoria-trajectory_resample_dt) y [argumentos del bringup](phantom_ws/src/phantomx_pincher_bringup/readme.md#argumentos-de-lanzamiento)).
 - El modelo en RViz usa los colores de los `.dae`; para ver los bloques de colisión con colores use `collision_colors:=true` (ver [Colores del modelo y bloques de colisión](#colores-del-modelo-y-bloques-de-colisión-collision_colors)).
 
 > **Nota:** las guías de instalación de la carpeta `guias/Setup` todavía describen la instalación de ROS 2 Jazzy en Ubuntu 24.04.

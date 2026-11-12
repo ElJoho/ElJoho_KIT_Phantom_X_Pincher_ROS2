@@ -31,6 +31,46 @@ Este paquete inicia el brazo PhantomX Pincher tanto en simulación con `ros2_con
   ```
   En este modo no se inicia `ros2_control`. El nodo `pincher_control` expone la acción `follow_joint_trajectory` y MoveIt se conecta directamente a ella.
 
+## Argumentos de lanzamiento
+Se pasan al final del comando con `nombre:=valor` y se pueden combinar. Para ver todos con su descripción:
+```bash
+ros2 launch phantomx_pincher_bringup phantomx_pincher.launch.py --show-args
+```
+
+| Argumento | Por defecto | Para qué sirve |
+|---|---|---|
+| `use_real_robot` | `false` | `true` usa el robot real (`pincher_control`); `false` usa la simulación. |
+| `use_suction_cup` | `false` | `true` añade la ventosa al modelo. |
+| `collision_colors` | `false` | `true` usa los colores del URDF para revisar los bloques de colisión en RViz; `false` muestra los colores de los `.dae`. |
+| `rviz_scale` | `0.75` | Tamaño del texto de RViz. `0.75` cabe en la pantalla de 848x480 de la Raspberry Pi; use `1.0` en un monitor normal. |
+| `trajectory_resample_dt` | `0.2` | Segundos entre los puntos de las trayectorias que genera MoveIt (ver abajo). |
+
+### Puntos de la trayectoria (`trajectory_resample_dt`)
+MoveIt genera un punto de la trayectoria cada `trajectory_resample_dt` segundos, así que el número de puntos es aproximadamente **duración del movimiento / `trajectory_resample_dt`**. Por defecto es `0.2` (MoveIt usa `0.1`, es decir, el doble de puntos).
+
+Para probar otro valor sin modificar archivos:
+```bash
+# Menos puntos (uno cada 0.5 s)
+ros2 launch phantomx_pincher_bringup phantomx_pincher.launch.py trajectory_resample_dt:=0.5
+
+# Más puntos (valor original de MoveIt, uno cada 0.1 s)
+ros2 launch phantomx_pincher_bringup phantomx_pincher.launch.py trajectory_resample_dt:=0.1
+
+# También funciona con el robot real
+ros2 launch phantomx_pincher_bringup phantomx_pincher.launch.py use_real_robot:=true trajectory_resample_dt:=0.1
+```
+
+Para cambiar el valor por defecto de forma permanente, edite `default_value="0.2"` del argumento `trajectory_resample_dt` en **los dos** archivos de lanzamiento y vuelva a compilar:
+- `phantomx_pincher_bringup/launch/phantomx_pincher.launch.py`
+- `phantomx_pincher_moveit_config/launch/move_group.launch.py`
+
+```bash
+colcon build --packages-select phantomx_pincher_bringup phantomx_pincher_moveit_config
+source install/setup.bash
+```
+
+Antes de cambiarlo, lea las ventajas y desventajas en [la guía de `phantomx_pincher_moveit_config`](../phantomx_pincher_moveit_config/readme.md#puntos-de-la-trayectoria-trajectory_resample_dt).
+
 ## Ajustes de controladores
 - Para modificar ganancias o cambiar entre control por posición y por esfuerzo, edita los archivos en `config/` y actualiza la ruta usada en el lanzamiento si lo requieres. El valor actual cargado para simulación en `phantomx_pincher.launch.py` apunta al archivo `controllers_position.yaml` del paquete `phantomx_pincher_moveit_config`.
 - Si utilizas tu propio hardware o simulador, adapta las interfaces de comando/estado y los nombres de articulación en las listas `joints` de los archivos YAML.

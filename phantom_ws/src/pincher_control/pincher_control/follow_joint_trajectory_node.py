@@ -66,6 +66,34 @@ GRIPPER_CLOSED_TICKS = 0      # ticks leídos cuando el gripper está físicamen
 GRIPPER_OPEN_M       = 0.01955 # metros por dedo cuando está abierto (39.1 mm / 2)
 GRIPPER_CLOSED_M     = 0.00375 # metros por dedo cuando está cerrado (7.5 mm / 2)
 
+# Velocidad adaptativa (parámetro adaptive_speed):
+#   - Un tick del AX-12A son 300°/1023 ≈ 0.29° (misma escala que rad_to_dxl_tick).
+#   - Una unidad de MOVING_SPEED del AX-12A son 0.111 rpm ≈ 0.0116 rad/s.
+#   - MOVING_SPEED = 0 significa "velocidad máxima sin control", por eso el
+#     mínimo que se envía es 1.
+RAD_PER_TICK = math.radians(300.0 / 1023.0)
+RAD_S_PER_SPEED_UNIT = 0.111 * 2.0 * math.pi / 60.0
+MIN_SPEED_UNIT = 1
+
+
+def segment_speed_units(delta_ticks: float, duration_s: float, max_units: int) -> int:
+    """
+    Velocidad (unidades MOVING_SPEED del AX-12A) para recorrer delta_ticks en
+    duration_s segundos, limitada a [MIN_SPEED_UNIT, max_units].
+
+    Se redondea HACIA ARRIBA: una unidad son ~0.0116 rad/s, así que redondear
+    al más cercano podía dejar el servo hasta ~10% más lento que lo planificado
+    y se iba atrasando. Hacia arriba, como mucho llega un poco antes al punto.
+
+    Si duration_s <= 0 (por ejemplo el primer punto, con time_from_start = 0)
+    se usa max_units.
+    """
+    if duration_s <= 0.0:
+        return max_units
+    rad_per_s = abs(delta_ticks) * RAD_PER_TICK / duration_s
+    units = math.ceil(rad_per_s / RAD_S_PER_SPEED_UNIT - 1e-9)
+    return max(MIN_SPEED_UNIT, min(max_units, units))
+
 
 class PincherFollowJointTrajectory(Node):
     """
@@ -110,6 +138,11 @@ class PincherFollowJointTrajectory(Node):
         self.declare_parameter("torque_limit", 800)
         # ID del servo que mueve el gripper real
         self.declare_parameter("gripper_id", 5)
+        # Velocidad adaptativa: en cada punto de la trayectoria se ajusta la
+        # MOVING_SPEED de cada servo para que llegue justo a tiempo al punto
+        # (distancia / tiempo del segmento), con moving_speed como máximo.
+        # false → comportamiento anterior (velocidad fija moving_speed).
+        self.declare_parameter("adaptive_speed", True)
 
         port_name = self.get_parameter("port").get_parameter_value().string_value
         baudrate = self.get_parameter("baudrate").get_parameter_value().integer_value
@@ -120,6 +153,9 @@ class PincherFollowJointTrajectory(Node):
         # Se guarda como atributo de instancia para poder identificar el servo
         # del gripper en read_servo_positions() y aplicar la conversión correcta.
         self.gripper_id = gripper_id
+        # moving_speed es la velocidad fija (modo anterior) y el máximo en modo adaptativo
+        self.moving_speed = moving_speed
+        self.adaptive_speed = self.get_parameter("adaptive_speed").get_parameter_value().bool_value
 
         # ------------ Mapa joint_name → ID de servo Dynamixel ------------
         #
@@ -244,7 +280,8 @@ class PincherFollowJointTrajectory(Node):
 
         self.get_logger().info(
             f"Conectado a Dynamixel en {port_name} @ {baudrate} baud. "
-            f"Velocidad={moving_speed}, Torque limit={torque_limit}, gripper_id={gripper_id}"
+            f"Velocidad={moving_speed}, Torque limit={torque_limit}, gripper_id={gripper_id}, "
+            f"adaptive_speed={self.adaptive_speed}"
         )
 
         # Leer las posiciones reales de los servos al iniciar para que RViz
@@ -336,48 +373,85 @@ class PincherFollowJointTrajectory(Node):
         Aquí aceptamos la cancelación y el execute_callback debe comprobar
         periódicamente goal_handle.is_cancel_requested para detener la ejecución.
         """
-        self.get_logger().warn("Cancelación de trayectoria solicitada")
+        self.get_logger().warning("Cancelación de trayectoria solicitada")
         return CancelResponse.ACCEPT
 
     def execute_callback(self, goal_handle):
         """
-        Ejecuta la trayectoria punto a punto respetando los tiempos absolute:
-          - goal_handle.request.trajectory.time_from_start
+        Ejecuta la trayectoria punto a punto respetando los tiempos
+        time_from_start de cada punto.
 
-        Para cada punto:
-          1. Espera hasta el instante adecuado (relativo al inicio del goal).
-          2. Envía los comandos de posición a los servos correspondientes.
-          3. Actualiza current_positions para que /joint_states refleje el cambio.
+        adaptive_speed = true (por defecto):
+          1. El punto i se envía al inicio de su segmento (instante del punto i-1).
+          2. Antes de la posición se escribe la MOVING_SPEED de cada servo para
+             que recorra el segmento justo en su duración (máximo moving_speed).
+          3. Al terminar se espera hasta el instante del último punto y se
+             devuelven los servos a moving_speed.
+
+        adaptive_speed = false (comportamiento anterior):
+          1. Espera hasta el instante de cada punto.
+          2. Envía la posición a los servos, que se mueven a moving_speed fija.
 
         Si se cancela el goal en mitad de la ejecución → marca el resultado
-        como PATH_TOLERANCE_VIOLATED (puedes ajustar si prefieres otro código).
+        como PATH_TOLERANCE_VIOLATED.
         """
         traj = goal_handle.request.trajectory
         joint_names = traj.joint_names
+        times = [p.time_from_start.sec + p.time_from_start.nanosec * 1e-9 for p in traj.points]
 
         # Marca de tiempo de inicio en reloj de pared (segundos)
         start_wall = time.time()
 
-        # Recorremos cada punto de la trayectoria
-        for i, point in enumerate(traj.points):
-            # Comprobar cancelación
-            if goal_handle.is_cancel_requested:
-                self.get_logger().warn("Ejecución cancelada por el cliente")
-                goal_handle.canceled()
-                result = FollowJointTrajectory.Result()
-                result.error_code = FollowJointTrajectory.Result.PATH_TOLERANCE_VIOLATED
-                return result
+        if not self.adaptive_speed:
+            # ---- Modo anterior: cada punto se envía en su instante, a velocidad fija ----
+            for i, point in enumerate(traj.points):
+                if goal_handle.is_cancel_requested:
+                    return self._cancel_result(goal_handle)
+                dt = start_wall + times[i] - time.time()
+                if dt > 0.0:
+                    time.sleep(dt)
+                self.send_point(joint_names, point)
+        else:
+            # ---- Velocidad adaptativa ----
+            # El punto i se envía al INICIO de su segmento (instante del punto i-1)
+            # con la velocidad necesaria para llegar a él justo en su instante:
+            #   velocidad = |tick_i - tick_(i-1)| / (t_i - t_(i-1))
+            # Así el servo se mueve de forma continua en vez de correr a velocidad
+            # fija hasta cada punto y quedarse quieto esperando el siguiente.
+            prev_ticks = None   # ticks del punto anterior (dxl_id → tick)
+            prev_t = 0.0        # instante del punto anterior
+            for i, point in enumerate(traj.points):
+                if goal_handle.is_cancel_requested:
+                    self._restore_moving_speed()
+                    return self._cancel_result(goal_handle)
+                dt = start_wall + prev_t - time.time()
+                if dt > 0.0:
+                    time.sleep(dt)
+                commands = self._point_commands(joint_names, point)
+                if commands is None:
+                    continue
+                # Posición exacta (sin redondear a ticks enteros) para calcular la velocidad
+                exact_ticks = self._point_exact_ticks(joint_names, point)
+                speeds = {
+                    dxl_id: segment_speed_units(
+                        exact_ticks[dxl_id] - prev_ticks[dxl_id] if prev_ticks and dxl_id in prev_ticks else 0.0,
+                        times[i] - prev_t if prev_ticks else 0.0,
+                        self.moving_speed,
+                    )
+                    for dxl_id, _ in commands
+                }
+                self._write_commands(commands, speeds)
+                prev_ticks = exact_ticks
+                prev_t = times[i]
 
-            # Instante absoluto en el que se debe ejecutar este punto
-            t_point = point.time_from_start.sec + point.time_from_start.nanosec * 1e-9
-            target_wall = start_wall + t_point
-            now = time.time()
-            dt = target_wall - now
-            if dt > 0.0:
-                time.sleep(dt)
-
-            # Enviar posiciones para todas las joints de este punto
-            self.send_point(joint_names, point)
+            # Esperar hasta el final de la trayectoria antes de dar el goal por
+            # terminado (el último punto se envió al inicio de su segmento).
+            while time.time() < start_wall + times[-1]:
+                if goal_handle.is_cancel_requested:
+                    self._restore_moving_speed()
+                    return self._cancel_result(goal_handle)
+                time.sleep(min(0.05, max(0.0, start_wall + times[-1] - time.time())))
+            self._restore_moving_speed()
 
         # Si llegamos hasta aquí, consideramos que la trayectoria se completó bien
         self.get_logger().info("Trayectoria completada correctamente")
@@ -386,6 +460,20 @@ class PincherFollowJointTrajectory(Node):
         result = FollowJointTrajectory.Result()
         result.error_code = FollowJointTrajectory.Result.SUCCESSFUL
         return result
+
+    def _cancel_result(self, goal_handle):
+        """Marca el goal como cancelado (mismo código de error que antes)."""
+        self.get_logger().warning("Ejecución cancelada por el cliente")
+        goal_handle.canceled()
+        result = FollowJointTrajectory.Result()
+        result.error_code = FollowJointTrajectory.Result.PATH_TOLERANCE_VIOLATED
+        return result
+
+    def _restore_moving_speed(self):
+        """Devuelve todos los servos a la velocidad fija moving_speed."""
+        with self._serial_lock:
+            for dxl_id in set(self.joint_to_id.values()):
+                self.packet.write2ByteTxRx(self.port, dxl_id, ADDR_MOVING_SPEED, self.moving_speed)
 
     # ======================================================================
     #   Publicación de /joint_states
@@ -416,11 +504,22 @@ class PincherFollowJointTrajectory(Node):
 
     def send_point(self, joint_names, point: JointTrajectoryPoint):
         """
-        Envía un único JointTrajectoryPoint a los servos.
+        Envía un único JointTrajectoryPoint a los servos (solo posición,
+        con la velocidad que tengan configurada).
 
         Parámetros:
           - joint_names: lista de nombres de joints en el orden de `point.positions`.
-          - point.positions: posiciones deseadas en radianes.
+          - point.positions: posiciones deseadas en radianes (metros en el gripper).
+
+        Thread-safe: usa un lock para proteger el acceso al puerto serie.
+        """
+        commands = self._point_commands(joint_names, point)
+        if commands is not None:
+            self._write_commands(commands)
+
+    def _point_commands(self, joint_names, point: JointTrajectoryPoint):
+        """
+        Convierte un JointTrajectoryPoint en una lista [(dxl_id, tick), ...].
 
         Caso particular del gripper:
           - finger1 y finger2 se mapean al mismo servo (mismo ID).
@@ -428,14 +527,14 @@ class PincherFollowJointTrajectory(Node):
             mismo punto, guardamos qué IDs ya hemos comandado y solo escribimos
             una vez en hardware.
 
-        Thread-safe: usa un lock para proteger el acceso al puerto serie.
+        Devuelve None si el punto no es válido.
         """
         if len(point.positions) != len(joint_names):
             self.get_logger().error(
                 "Punto de trayectoria con número de posiciones "
                 "distinto al número de joints"
             )
-            return
+            return None
 
         # Lleva la cuenta de qué IDs ya han recibido comando en este punto
         commanded_ids = set()
@@ -446,7 +545,7 @@ class PincherFollowJointTrajectory(Node):
         for j_name, pos_rad in zip(joint_names, point.positions):
             # Si la joint no está en joint_to_id, no tenemos servo para ella
             if j_name not in self.joint_to_id:
-                self.get_logger().warn(
+                self.get_logger().warning(
                     f"Joint {j_name} no conocida en joint_to_id, se ignora en hardware"
                 )
                 continue
@@ -477,14 +576,49 @@ class PincherFollowJointTrajectory(Node):
 
             commands_to_send.append((dxl_id, tick_clamped))
 
-        # Enviar todos los comandos con el lock adquirido
+        return commands_to_send
+
+    def _point_exact_ticks(self, joint_names, point: JointTrajectoryPoint):
+        """
+        Posición de cada servo en ticks SIN redondear (dxl_id → float), con la
+        misma conversión que _point_commands. Solo se usa para calcular la
+        velocidad del segmento con precisión.
+        """
+        exact = {}
+        for j_name, pos in zip(joint_names, point.positions):
+            dxl_id = self.joint_to_id.get(j_name)
+            if dxl_id is None or dxl_id in exact:
+                continue
+            if dxl_id == self.gripper_id:
+                t = (pos - GRIPPER_CLOSED_M) / (GRIPPER_OPEN_M - GRIPPER_CLOSED_M)
+                exact[dxl_id] = GRIPPER_CLOSED_TICKS + t * (GRIPPER_OPEN_TICKS - GRIPPER_CLOSED_TICKS)
+            else:
+                hw_rad = pos * self.joint_sign_send.get(dxl_id, 1)
+                exact[dxl_id] = 512.0 + math.degrees(hw_rad) * (1023.0 / 300.0)
+        return exact
+
+    def _write_commands(self, commands, speeds=None):
+        """
+        Escribe en los servos la posición objetivo de cada (dxl_id, tick).
+        Si se pasa speeds (dxl_id → unidades MOVING_SPEED), primero escribe la
+        velocidad de cada servo y después su posición objetivo.
+        """
         with self._serial_lock:
-            for dxl_id, tick_clamped in commands_to_send:
+            for dxl_id, tick_clamped in commands:
+                if speeds is not None and dxl_id in speeds:
+                    _, err = self.packet.write2ByteTxRx(
+                        self.port, dxl_id, ADDR_MOVING_SPEED, speeds[dxl_id]
+                    )
+                    if err != 0:
+                        self.get_logger().warning(
+                            f"Error al mandar velocidad a ID {dxl_id}: "
+                            f"speed={speeds[dxl_id]}, err={err}"
+                        )
                 _, err = self.packet.write2ByteTxRx(
                     self.port, dxl_id, ADDR_GOAL_POSITION, tick_clamped
                 )
                 if err != 0:
-                    self.get_logger().warn(
+                    self.get_logger().warning(
                         f"Error al mandar posición a ID {dxl_id}: tick={tick_clamped}, "
                         f"err={err}"
                     )
@@ -589,7 +723,7 @@ class PincherFollowJointTrajectory(Node):
                 )
 
                 if comm_result != 0 or err != 0:
-                    self.get_logger().warn(
+                    self.get_logger().warning(
                         f"Error leyendo posición de servo ID {dxl_id}: "
                         f"comm_result={comm_result}, err={err}"
                     )
@@ -632,12 +766,12 @@ class PincherFollowJointTrajectory(Node):
             for j_name, dxl_id in self.joint_to_id.items():
                 self.packet.write1ByteTxRx(self.port, dxl_id, ADDR_TORQUE_ENABLE, 0)
         except Exception as e:
-            self.get_logger().warn(f"Error al deshabilitar torque: {e}")
+            self.get_logger().warning(f"Error al deshabilitar torque: {e}")
 
         try:
             self.port.closePort()
         except Exception as e:
-            self.get_logger().warn(f"Error al cerrar puerto: {e}")
+            self.get_logger().warning(f"Error al cerrar puerto: {e}")
 
         # Destruir action servers explícitamente (buena práctica)
         try:
