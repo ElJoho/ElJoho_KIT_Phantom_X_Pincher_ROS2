@@ -16,6 +16,9 @@
        Se lee de la variable de entorno del sistema para seleccionar
        automáticamente el plugin de hardware correcto. -->
   <xacro:property name="ros_distro" value="$(env ROS_DISTRO)" />
+  <!-- Distribuciones antiguas (Humble y anteriores) usan 'fake_components' y <update_rate>.
+       Jazzy, Kilted, Lyrical y posteriores usan 'mock_components' y rechazan <update_rate>. -->
+  <xacro:property name="legacy_distro" value="${ros_distro in ['foxy', 'galactic', 'humble']}" />
 
 
   <!-- ============================================================ -->
@@ -65,18 +68,18 @@
       <hardware>
 
         <!-- Plugin 'fake': simulación en memoria, sin robot real.
-             En ROS2 Jazzy se renombró a 'mock_components/GenericSystem';
+             Desde ROS2 Jazzy (también Kilted, Lyrical) se llama 'mock_components/GenericSystem';
              en distribuciones anteriores (Humble, etc.) se llama
              'fake_components/GenericSystem'. El parámetro
              fake_sensor_commands=true permite enviar comandos
              directamente como si fueran lecturas de sensores. -->
         <xacro:if value="${plugin == 'fake'}">
-          <xacro:if value="${ros_distro == 'jazzy'}">
+          <xacro:unless value="${legacy_distro}">
             <plugin>mock_components/GenericSystem</plugin>
-          </xacro:if>
-          <xacro:unless value="${ros_distro == 'jazzy'}">
-            <plugin>fake_components/GenericSystem</plugin>
           </xacro:unless>
+          <xacro:if value="${legacy_distro}">
+            <plugin>fake_components/GenericSystem</plugin>
+          </xacro:if>
           <param name="fake_sensor_commands">true</param>
         </xacro:if>
 
@@ -102,10 +105,10 @@
       </hardware>
 
       <!-- Frecuencia de actualización del controlador (Hz).
-           Solo se aplica en distribuciones distintas a Jazzy con
-           el plugin 'fake'. En Jazzy este parámetro no es necesario
+           Solo se aplica en distribuciones antiguas (Humble o anteriores) con
+           el plugin 'fake'. En Jazzy y posteriores este parámetro no es necesario (Lyrical lo rechaza)
            porque el controlador usa otra estrategia de sincronización. -->
-      <xacro:if value="${ros_distro != 'jazzy'}">
+      <xacro:if value="${legacy_distro}">
         <xacro:if value="${plugin == 'fake'}">
           <update_rate>250</update_rate>
         </xacro:if>

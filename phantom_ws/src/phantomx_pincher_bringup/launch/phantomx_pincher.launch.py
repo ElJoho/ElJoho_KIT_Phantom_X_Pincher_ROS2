@@ -122,6 +122,8 @@ def generate_launch_description():
         arguments=[
             "joint_state_broadcaster",
             "--controller-manager", "/controller_manager",
+            # Since Kilted/Lyrical controllers only get their parameters this way
+            "--param-file", controllers_yaml,
         ],
         condition=UnlessCondition(use_real_robot),
     )
@@ -133,6 +135,8 @@ def generate_launch_description():
         arguments=[
             "joint_trajectory_controller",
             "--controller-manager", "/controller_manager",
+            # Since Kilted/Lyrical controllers only get their parameters this way
+            "--param-file", controllers_yaml,
         ],
         condition=UnlessCondition(use_real_robot),
     )
@@ -144,6 +148,8 @@ def generate_launch_description():
         arguments=[
             "gripper_trajectory_controller",
             "--controller-manager", "/controller_manager",
+            # Since Kilted/Lyrical controllers only get their parameters this way
+            "--param-file", controllers_yaml,
         ],
         condition=UnlessCondition(use_real_robot),
     )

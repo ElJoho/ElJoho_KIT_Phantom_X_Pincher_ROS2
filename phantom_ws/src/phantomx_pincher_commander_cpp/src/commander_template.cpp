@@ -11,7 +11,11 @@
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <moveit_msgs/msg/robot_trajectory.hpp>
 #include <moveit_msgs/msg/move_it_error_codes.hpp>
-#include <tf2/LinearMath/Quaternion.h>
+#if __has_include(<tf2/LinearMath/Quaternion.hpp>)
+  #include <tf2/LinearMath/Quaternion.hpp>
+#else
+  #include <tf2/LinearMath/Quaternion.h>
+#endif
 
 
 using MoveGroupInterface = moveit::planning_interface::MoveGroupInterface;

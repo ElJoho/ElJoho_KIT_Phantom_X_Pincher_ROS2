@@ -302,7 +302,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Fixed Frame: phantomx_pincher_base_link
-    Frame Rate: 30
+    Frame Rate: 24
   Name: root
   Tools:
     - Class: rviz_default_plugins/Interact

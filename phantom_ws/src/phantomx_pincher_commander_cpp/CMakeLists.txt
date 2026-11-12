@@ -14,10 +14,19 @@ find_package(phantomx_pincher_interfaces REQUIRED)
 find_package(std_msgs REQUIRED)
 
 add_executable(test_moveit src/test_moveit.cpp)
-ament_target_dependencies(test_moveit rclcpp moveit_ros_planning_interface)
+target_link_libraries(test_moveit
+  ${rclcpp_TARGETS}
+  ${moveit_ros_planning_interface_TARGETS}
+)
 
 add_executable(commander src/commander_template.cpp)
-ament_target_dependencies(commander rclcpp moveit_ros_planning_interface example_interfaces phantomx_pincher_interfaces std_msgs)
+target_link_libraries(commander
+  ${rclcpp_TARGETS}
+  ${moveit_ros_planning_interface_TARGETS}
+  ${example_interfaces_TARGETS}
+  ${phantomx_pincher_interfaces_TARGETS}
+  ${std_msgs_TARGETS}
+)
 
 install(TARGETS
   test_moveit

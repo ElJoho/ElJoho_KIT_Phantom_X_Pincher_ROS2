@@ -43,6 +43,7 @@ def generate_launch_description():
     enable_servo = LaunchConfiguration("enable_servo")
     enable_rviz = LaunchConfiguration("enable_rviz")
     rviz_config = LaunchConfiguration("rviz_config")
+    rviz_scale = LaunchConfiguration("rviz_scale")
     use_sim_time = LaunchConfiguration("use_sim_time")
     log_level = LaunchConfiguration("log_level")
 
@@ -348,6 +349,8 @@ def generate_launch_description():
                 joint_limits,
                 {"use_sim_time": use_sim_time},
             ],
+            # Scale RViz's interface (Qt) so the window fits small screens (848x480 on the Pi)
+            additional_env={"QT_SCALE_FACTOR": rviz_scale},
             condition=IfCondition(enable_rviz),
         ),
     ]
@@ -361,7 +364,7 @@ def generate_launch_description():
             package="controller_manager",
             executable="spawner",
             output="log",
-            arguments=["joint_state_broadcaster", "--ros-args", "--log-level", log_level],
+            arguments=["joint_state_broadcaster", "--param-file", controller_parameters, "--ros-args", "--log-level", log_level],
             parameters=[{"use_sim_time": use_sim_time}],
             condition=IfCondition(manage_controllers),
         )
@@ -372,7 +375,8 @@ def generate_launch_description():
                 package="controller_manager",
                 executable="spawner",
                 output="log",
-                arguments=[controller, "--ros-args", "--log-level", log_level],
+                # --param-file: since Kilted/Lyrical controllers only get their parameters this way
+                arguments=[controller, "--param-file", controller_parameters, "--ros-args", "--log-level", log_level],
                 parameters=[{"use_sim_time": use_sim_time}],
                 condition=IfCondition(manage_controllers),
             ),
@@ -510,6 +514,11 @@ def generate_declared_arguments() -> List[DeclareLaunchArgument]:
                 "moveit.rviz",
             ),
             description="Path to configuration for RViz2.",
+        ),
+        DeclareLaunchArgument(
+            "rviz_scale",
+            default_value="0.8",
+            description="Scale of RViz2's interface (QT_SCALE_FACTOR). 0.8 fits an 848x480 screen; use 1.0 on a normal monitor.",
         ),
         DeclareLaunchArgument(
             "use_sim_time",
