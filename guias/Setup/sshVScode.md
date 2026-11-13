@@ -3,6 +3,9 @@
 
 **Autor:** Johan Alejandro López Arias ([@ElJoho](https://github.com/ElJoho))
 
+> [!NOTE]
+> **Esta guía es para la rama `jazzy` (ROS 2 Jazzy, Ubuntu 24.04).** En la rama `main` (ROS 2 Lyrical, Ubuntu 26.04) la Raspberry Pi ya no tiene Visual Studio Code y esta conexión no forma parte de las guías principales. Ahora solo se usa **Samba** para ver los archivos de la Raspberry Pi desde el PC, y **VS Code se usa en el PC** que se conecta a la Raspberry para editar esos archivos (ver la [guía de Samba](guiaSamba.md)). Esta guía se deja por si alguien quiere probar esta conexión.
+
 
 <details>
   <summary>
@@ -171,6 +174,6 @@ Ingresa la contraseña `unpi` una última vez. Después de esto, VS Code se cone
 
 ## Notas
 
-- **NoMachine y VS Code SSH son completamente compatibles** — puedes tener ambas conexiones activas al mismo tiempo sin interferencia. Usan protocolos y puertos distintos.
+- **El Escritorio remoto (RDP) y VS Code SSH son completamente compatibles** — puedes tener ambas conexiones activas al mismo tiempo sin interferencia. Usan protocolos y puertos distintos (RDP: 3389, SSH: 22).
 - La extensión Remote-SSH instala un servidor ligero en la Pi la primera vez (`~/.vscode-server/`). Las conexiones posteriores son instantáneas.
 - Las extensiones de VS Code (Python, ROS, etc.) deben instalarse "en el host remoto" desde VS Code — aparecerá el botón **Install in SSH: 192.168.10.2** en lugar del botón de instalación normal.

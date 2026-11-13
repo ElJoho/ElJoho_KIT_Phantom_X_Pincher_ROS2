@@ -2,6 +2,9 @@
 
 **Autor:** Johan Alejandro López Arias ([@ElJoho](https://github.com/ElJoho))
 
+> [!NOTE]
+> **Esta guía es para la rama `jazzy` (ROS 2 Jazzy, Ubuntu 24.04).** En la rama `main` (ROS 2 Lyrical, Ubuntu 26.04) la Raspberry Pi ya no tiene Visual Studio Code y esta conexión no forma parte de las guías principales. Ahora solo se usa **Samba** para ver los archivos de la Raspberry Pi desde el PC, y **VS Code se usa en el PC** que se conecta a la Raspberry para editar esos archivos (ver la [guía de Samba](guiaSamba.md)). Esta guía se deja por si alguien quiere probar esta conexión.
+
 Esta guía explica cómo configurar la extensión [SFTP (Natizykunk)](https://marketplace.visualstudio.com/items?itemName=Natizykunk.sftp)
 para editar el workspace de la Raspberry Pi directamente desde VS Code en Windows.
 

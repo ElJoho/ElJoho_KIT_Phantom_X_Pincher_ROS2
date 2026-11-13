@@ -22,7 +22,7 @@ El mensaje contiene:
 
 ## Requisitos
 
-- ROS 2 Humble.
+- ROS 2 Lyrical (Ubuntu 26.04). Para ROS 2 Jazzy usar la rama `jazzy`.
 - `ament_cmake` y `rosidl_default_generators` (se declaran en `package.xml`).
 
 ## Compilación

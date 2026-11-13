@@ -3,7 +3,7 @@
 Este paquete proporciona nodos C++ para controlar el brazo PhantomX Pincher mediante MoveIt. Expone un nodo "commander" que escucha comandos de agarre, articulaciones y poses cartesianas, además de un binario de ejemplo "test_moveit" para probar trayectorias predefinidas.
 
 ## Dependencias principales
-- ROS 2 Humble (o compatible) con soporte para `rclcpp`.
+- ROS 2 Lyrical (Ubuntu 26.04) con soporte para `rclcpp`. Para ROS 2 Jazzy usar la rama `jazzy`.
 - MoveIt 2 (`moveit_ros_planning_interface`).
 - Interfaces de mensajes `example_interfaces` y `phantomx_pincher_interfaces`.
 

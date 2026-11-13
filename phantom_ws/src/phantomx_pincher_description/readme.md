@@ -3,8 +3,8 @@
 Este paquete contiene la descripción del brazo robótico PhantomX Pincher en formatos URDF y SDF, junto con los recursos necesarios (mallas, configuraciones de RViz y scripts) para visualizar el modelo y reutilizarlo en otros proyectos ROS 2.
 
 ## Requisitos previos
-- ROS 2 Humble (u otra versión compatible con `ament_cmake`).
-- Paquetes de ejecución declarados en `package.xml`: `xacro`, `robot_state_publisher`, `joint_state_publisher_gui`, `rviz2`, `urdf`, `ros_ign_bridge` y `ros_ign_gazebo` si se desea usar Gazebo.
+- ROS 2 Lyrical (Ubuntu 26.04). Para ROS 2 Jazzy usar la rama `jazzy`.
+- Paquetes de ejecución declarados en `package.xml`: `xacro`, `robot_state_publisher`, `joint_state_publisher_gui`, `rviz2`, `urdf`. En la rama `main` no se instala Gazebo, por eso `view_gz.launch.py` no funciona.
 - Haber compilado el workspace con `colcon build` y haber ejecutado `source install/setup.bash` antes de lanzar los ejemplos.
 
 ## Estructura del paquete

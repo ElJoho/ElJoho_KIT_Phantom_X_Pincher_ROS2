@@ -2,6 +2,9 @@
 
 **Autor:** Johan Alejandro López Arias ([@ElJoho](https://github.com/ElJoho))
 
+> [!NOTE]
+> **Esta guía es para la rama `jazzy` (ROS 2 Jazzy, Ubuntu 24.04).** En la rama `main` (ROS 2 Lyrical, Ubuntu 26.04) la Raspberry Pi ya no tiene Visual Studio Code y esta conexión (SSHFS, que funciona sobre SSH/SFTP) no forma parte de las guías principales. Ahora solo se usa **Samba** para ver los archivos de la Raspberry Pi desde el PC, y **VS Code se usa en el PC** que se conecta a la Raspberry para editar esos archivos (ver la [guía de Samba](guiaSamba.md)). Esta guía se deja por si alguien quiere probar esta conexión.
+
 Esta guía explica cómo montar las carpetas de la Raspberry Pi del kit del PhantomX Pincher (con **Ubuntu 24.04**) dentro de un PC con **Ubuntu 24.04** usando **SSHFS**, de modo que los archivos de la Raspberry aparezcan como una carpeta local más.
 
 > **Esta guía es exclusiva para PC con Linux (Ubuntu 24.04).** El comando `sshfs` y las opciones de montaje descritas aquí son propias de Linux. Si tu PC usa Windows, esta guía no aplica: en ese caso usa la guía de Samba o un cliente como SSHFS-Win / SFTP.
@@ -32,7 +35,7 @@ Es ideal para:
 
 > En esta guía `<usuario>` representa **tu** nombre de usuario en el PC, que puede ser cualquiera. Reemplázalo por el tuyo en cada comando (puedes verlo con `whoami` o en el prompt de tu terminal).
 
-> La Raspberry Pi ya debe tener la IP estática `192.168.10.2`. Si ya seguiste la guía de NoMachine para conexión directa por Ethernet, tu adaptador Ethernet en el PC debería estar en `192.168.10.1`. Ambos equipos quedan en la misma subred y no necesitas configurar nada más de red.
+> La Raspberry Pi ya debe tener la IP estática `192.168.10.2`. Si ya seguiste la [guía de Escritorio remoto](conexionEscritorioRemoto.md) para conexión directa por Ethernet, tu adaptador Ethernet en el PC debería estar en `192.168.10.1`. Ambos equipos quedan en la misma subred y no necesitas configurar nada más de red.
 
 ---
 

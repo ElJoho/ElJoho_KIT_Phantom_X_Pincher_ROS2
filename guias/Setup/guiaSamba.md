@@ -12,14 +12,16 @@
 
 
 
-Esta guía explica cómo montar un servidor **Samba** en la Raspberry Pi del kit del PhantomX Pincher con **Ubuntu 24.04** para acceder a sus carpetas desde un PC con **Windows 11** como si fueran una unidad de red.
+Esta guía explica cómo montar un servidor **Samba** en la Raspberry Pi del kit del PhantomX Pincher con **Ubuntu 26.04** para acceder a sus carpetas desde un PC con **Windows 11** (como una unidad de red) o con **Linux** (como una carpeta más, sección 16).
+
+Samba solo entrega archivos: la Raspberry Pi casi no gasta CPU ni RAM, porque los programas con los que abres y editas los archivos corren en tu PC.
 
 Es ideal para mover archivos pesados entre la Raspberry Pi y el computador, por ejemplo:
 
 * Mallas CAD o archivos STL.
 * Archivos grandes de ROS 2.
 * Carpetas completas de proyectos.
-* Archivos que quieras copiar arrastrando y soltando desde Windows.
+* Archivos que quieras copiar arrastrando y soltando desde el explorador de archivos de Windows o Linux.
 
 ---
 
@@ -33,30 +35,9 @@ Es ideal para mover archivos pesados entre la Raspberry Pi y el computador, por 
 | **IP del PC por Ethernet**               | `192.168.10.1`   |
 | **Máscara de subred**                    | `255.255.255.0`  |
 | **Contraseña de Samba**                  | `unpi`           |
-| **Sistema operativo de la Raspberry Pi** | Ubuntu 24.04 LTS |
+| **Sistema operativo de la Raspberry Pi** | Ubuntu 26.04 LTS |
 
-> La Raspberry Pi ya debe tener la IP estática `192.168.10.2`. Si ya seguiste la guía de NoMachine para conexión directa por Ethernet, tu adaptador Ethernet en Windows debería estar en `192.168.10.1`. Ambos equipos quedan en la misma subred y no necesitas configurar nada más de red.
-
----
-
-## ¿Cuándo usar Samba y cuándo SFTP?
-
-Samba no reemplaza la guía de **SFTP en VS Code**. La complementa.
-
-| Necesitas…                                                      | Usa       |
-| --------------------------------------------------------------- | --------- |
-| Editar código y subir cambios al guardar con `Ctrl + S`         | **SFTP**  |
-| Mover videos, mallas STL, archivos grandes o carpetas completas | **Samba** |
-| Arrastrar y soltar archivos desde el Explorador de Windows      | **Samba** |
-| Navegar carpetas de la Raspberry desde Windows                  | **Samba** |
-| Trabajar cómodamente desde VS Code                              | **SFTP**  |
-
-En resumen:
-
-* **SFTP**: mejor para trabajar código desde VS Code.
-* **Samba**: mejor para mover archivos desde el Explorador de Windows.
-
-Ambos pueden convivir sin conflicto.
+> La Raspberry Pi ya debe tener la IP estática `192.168.10.2`. Si ya seguiste la [guía de Escritorio remoto](conexionEscritorioRemoto.md) para conexión directa por Ethernet, tu adaptador Ethernet (en Windows o Linux) debería estar en `192.168.10.1`. Ambos equipos quedan en la misma subred y no necesitas configurar nada más de red.
 
 ---
 
@@ -91,13 +72,13 @@ Windows 11 usa normalmente **SMB2/SMB3**. No es necesario activar SMB1.
 Antes de empezar, asegúrate de tener:
 
 * Raspberry Pi 5 encendida.
-* Ubuntu 24.04 LTS instalado en la Raspberry Pi.
-* Cable Ethernet directo entre la Raspberry Pi y el PC con Windows 11.
+* Ubuntu 26.04 LTS instalado en la Raspberry Pi.
+* Cable Ethernet directo entre la Raspberry Pi y el PC (Windows 11 o Linux).
 * IP de la Raspberry Pi: `192.168.10.2`.
-* IP del adaptador Ethernet de Windows: `192.168.10.1`.
+* IP del adaptador Ethernet del PC: `192.168.10.1`.
 * Acceso a la terminal de la Raspberry Pi, ya sea por:
 
-  * NoMachine.
+  * Escritorio remoto (RDP).
   * SSH.
   * Monitor y teclado conectados directamente.
 
@@ -138,7 +119,7 @@ smbd --version
 Deberías ver algo parecido a:
 
 ```text
-Version 4.19.x
+Version 4.23.x
 ```
 
 ---
@@ -222,6 +203,28 @@ Ctrl + X
 
 ---
 
+### 3.1 (Recomendado) Ofrecer Samba solo por el cable Ethernet
+
+Si la Raspberry Pi también está conectada a una red Wi-Fi (por ejemplo, la de tu casa o la de la universidad), por defecto Samba ofrecería `/home/unpi` también en esa red, protegido solo por la contraseña `unpi`. Para que solo responda por el cable:
+
+```bash
+sudo sed -i '/^\[global\]/a\   interfaces = lo eth0\n   bind interfaces only = yes' /etc/samba/smb.conf
+```
+
+Esto añade dos líneas debajo de `[global]` en `smb.conf`:
+
+```ini
+   interfaces = lo eth0
+   bind interfaces only = yes
+```
+
+- `interfaces = lo eth0`: Samba solo escucha en la propia Raspberry (`lo`) y en el puerto Ethernet (`eth0`).
+- `bind interfaces only = yes`: no responde en ninguna otra interfaz (Wi-Fi incluido).
+
+Después de reiniciar Samba (sección 7) puedes comprobarlo con `sudo ss -lntp | grep -E ':(445|139)\b'`: deben aparecer solo `127.0.0.1`, `[::1]` y `192.168.10.2`.
+
+---
+
 ## 4. Explicación de la configuración
 
 | Parámetro               | Función                                                          |
@@ -237,7 +240,7 @@ Ctrl + X
 | `directory mask = 0775` | Permisos para carpetas nuevas.                                   |
 | `force user = unpi`     | Fuerza que los archivos creados queden como propiedad de `unpi`. |
 
-> En Ubuntu 24.04, los archivos creados desde Samba pueden quedar con permisos diferentes a los de Raspberry Pi OS. Por eso se usan `create mask = 0664` y `directory mask = 0775`.
+> En Ubuntu, los archivos creados desde Samba pueden quedar con permisos diferentes a los de Raspberry Pi OS. Por eso se usan `create mask = 0664` y `directory mask = 0775`.
 
 ---
 
@@ -544,6 +547,84 @@ Si puedes crear archivos desde ambos lados, Samba quedó funcionando correctamen
 
 ---
 
+## 16. Conectar desde Linux
+
+Los pasos 1 a 9 (en la Raspberry Pi) son los mismos para Windows y Linux. Desde un PC con Linux no hay que instalar nada para el método 16.2, y para el método 16.3 solo el paquete `cifs-utils`.
+
+### 16.1 Red del PC
+
+El adaptador Ethernet del PC debe tener la IP `192.168.10.1`. Si todavía no lo configuraste, sigue la sección **2.2 En Linux** de la [guía de Escritorio remoto](conexionEscritorioRemoto.md#22-en-linux) (crea una conexión "Raspberry Pi kit" sin tocar tu conexión normal).
+
+Comprueba que el PC ve a la Raspberry y que el puerto de Samba responde:
+
+```bash
+ping -c 3 192.168.10.2
+nc -zv 192.168.10.2 445        # debe decir "succeeded" u "open"
+```
+
+### 16.2 Método recomendado: el explorador de archivos (Archivos / Nautilus)
+
+1. Abre **Archivos**.
+2. En el panel izquierdo, haz clic en **Otras ubicaciones**.
+3. Abajo, en **Conectar al servidor**, escribe:
+
+   ```text
+   smb://192.168.10.2/unpi
+   ```
+
+4. Clic en **Conectar**. Elige **Usuario registrado** y escribe:
+
+   | Campo | Valor |
+   |---|---|
+   | Nombre de usuario | `unpi` |
+   | Dominio | `WORKGROUP` (el que aparece por defecto) |
+   | Contraseña | `unpi` |
+
+   Elige **Recordar para siempre** si no quieres escribirla cada vez.
+
+5. La carpeta `/home/unpi` de la Raspberry aparece en el panel izquierdo. Para desconectarla, clic en el botón de expulsar ⏏ junto a su nombre.
+
+> 💡 Para tenerla a mano: con la carpeta abierta, **Ctrl + D** la añade a los marcadores del panel izquierdo.
+
+En otros escritorios (KDE Dolphin, Thunar, etc.) la dirección es la misma: `smb://192.168.10.2/unpi`.
+
+Mientras está conectada, la carpeta también existe en la terminal, en `/run/user/$(id -u)/gvfs/smb-share:server=192.168.10.2,share=unpi`.
+
+### 16.3 Método alternativo: montarla como una carpeta normal (`cifs`)
+
+Útil para abrirla en VS Code u otros programas como si fuera una carpeta local:
+
+```bash
+sudo apt install cifs-utils          # solo la primera vez
+mkdir -p ~/raspberrypi               # carpeta de montaje (solo la primera vez)
+sudo mount -t cifs //192.168.10.2/unpi ~/raspberrypi -o username=unpi,uid=$(id -u),gid=$(id -g)
+```
+
+Pide la contraseña de Samba (`unpi`). Luego los archivos de la Raspberry aparecen en `~/raspberrypi`.
+
+| Opción | Función |
+|---|---|
+| `username=unpi` | Usuario de Samba. |
+| `uid=$(id -u),gid=$(id -g)` | Los archivos aparecen como tuyos en el PC, así puedes editarlos sin `sudo`. |
+
+Para desmontarla (por ejemplo, antes de desconectar el cable):
+
+```bash
+sudo umount ~/raspberrypi
+```
+
+> ⚠️ Si desconectas el cable o apagas la Raspberry sin desmontar, los programas que tengan abierta la carpeta pueden quedarse esperando. Desmonta primero; si ya pasó, usa `sudo umount -l ~/raspberrypi`.
+
+### 16.4 Verificación
+
+Desde Linux, crea un archivo en la carpeta conectada (en Archivos o en `~/raspberrypi`), por ejemplo `prueba_desde_linux.txt`, y en la Raspberry comprueba que aparece:
+
+```bash
+ls -l /home/unpi/prueba_desde_linux.txt
+```
+
+---
+
 # Solución de problemas
 
 ## 1. `net use` funciona, pero `net view \\192.168.10.2` falla con error 53
@@ -756,6 +837,9 @@ Por eso, para esta guía, el método recomendado en Windows 11 es montar directa
 | Montar unidad temporal          | `net use Z: \\192.168.10.2\unpi /user:unpi unpi /persistent:no`  |
 | Montar unidad permanente        | `net use Z: \\192.168.10.2\unpi /user:unpi unpi /persistent:yes` |
 | Ruta para Explorador            | `\\192.168.10.2\unpi`                                            |
+| Conectar desde Linux (Archivos) | `smb://192.168.10.2/unpi`                                        |
+| Montar desde Linux              | `sudo mount -t cifs //192.168.10.2/unpi ~/raspberrypi -o username=unpi,uid=$(id -u),gid=$(id -g)` |
+| Desmontar en Linux              | `sudo umount ~/raspberrypi`                                      |
 
 ---
 

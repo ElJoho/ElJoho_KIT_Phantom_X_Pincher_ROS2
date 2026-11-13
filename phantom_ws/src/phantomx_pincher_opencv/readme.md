@@ -17,22 +17,22 @@ Incluye dos nodos:
 
 ## 2) Requisitos
 
-- Ubuntu 24.04 (o similar) con entorno gráfico (para ver ventanas de OpenCV).
-- ROS 2 Jazzy (o distro compatible).
+- Ubuntu 26.04 con entorno gráfico (para ver ventanas de OpenCV).
+- ROS 2 Lyrical. Para ROS 2 Jazzy usar la rama `jazzy`.
 - Cámara USB reconocida por Linux (ej: Logitech C270).
 
-### Dependencias típicas (Ubuntu/ROS 2 Jazzy)
+### Dependencias típicas (Ubuntu 26.04 / ROS 2 Lyrical)
 
 ```bash
 sudo apt update
 sudo apt install python3-opencv
-sudo apt install ros-jazzy-cv-bridge ros-jazzy-sensor-msgs
+sudo apt install ros-lyrical-cv-bridge ros-lyrical-sensor-msgs
 ```
 
 Opcional (para visualizar imágenes sin tu suscriptor):
 
 ```bash
-sudo apt install ros-jazzy-image-view ros-jazzy-rqt-image-view
+sudo apt install ros-lyrical-image-view ros-lyrical-rqt-image-view
 ```
 
 ---
@@ -67,8 +67,8 @@ colcon build --symlink-install
 3) “Source” del workspace (en **cada terminal** que vayas a usar):
 
 ```bash
-source /opt/ros/jazzy/setup.bash
-source ~/phantom_ws/install/setup.bash
+source /opt/ros/lyrical/setup.bash
+source ~/ros2/KIT_Phantom_X_Pincher_ROS2/phantom_ws/install/setup.bash
 ```
 
 ---
@@ -152,7 +152,7 @@ Luego recompila:
 ```bash
 cd ~/phantom_ws
 colcon build --symlink-install
-source ~/phantom_ws/install/setup.bash
+source ~/ros2/KIT_Phantom_X_Pincher_ROS2/phantom_ws/install/setup.bash
 ```
 
 ### 7.3 Ajustar la detección del cuadrado negro
@@ -185,14 +185,14 @@ Esto abre una ventana adicional: `DEBUG - Edges`.
 echo $DISPLAY
 ```
 
-- Si usas NoMachine/Remote Desktop, asegúrate de que la sesión sea gráfica y tenga acceso a la pantalla.
+- Si usas el Escritorio remoto (RDP), asegúrate de que la sesión sea gráfica y tenga acceso a la pantalla.
 
 ### `image_view` “Package not found”
 Instala el visor:
 
 ```bash
 sudo apt update
-sudo apt install ros-jazzy-image-view
+sudo apt install ros-lyrical-image-view
 ```
 
 ### Mucho “spam” en consola (logs)

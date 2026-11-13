@@ -253,7 +253,7 @@ source install/setup.bash
 
 ## Nota sobre el segfault de move_group al cerrar
 
-Al hacer Ctrl+C, `move_group` puede mostrar un segmentation fault. Este error ocurre en el destructor interno de MoveIt2 (`~MoveItCpp`, `~TrajectoryExecutionManager`) y es un bug conocido de MoveIt2 en ROS2 Jazzy. **No afecta al funcionamiento durante la ejecución** y no está relacionado con el parámetro `use_suction_cup`.
+Al hacer Ctrl+C, `move_group` puede mostrar un segmentation fault. Este error ocurre en el destructor interno de MoveIt2 (`~MoveItCpp`, `~TrajectoryExecutionManager`) y es un bug conocido de MoveIt2 en ROS 2 Jazzy (también pasa en Lyrical). **No afecta al funcionamiento durante la ejecución** y no está relacionado con el parámetro `use_suction_cup`.
 
 ---
 

@@ -8,7 +8,7 @@ Este paquete inicia el brazo PhantomX Pincher tanto en simulación con `ros2_con
 - `package.xml` y `CMakeLists.txt`: declarativos del paquete y la instalación de los recursos anteriores.
 
 ## Requisitos
-- ROS 2 Humble con soporte para `colcon`.
+- ROS 2 Lyrical (Ubuntu 26.04) con soporte para `colcon`. Para ROS 2 Jazzy usar la rama `jazzy`.
 - Dependencias en tiempo de ejecución: `phantomx_pincher_description`, `phantomx_pincher_moveit_config`, `robot_state_publisher`, `controller_manager`, `rviz2` y `pincher_control` (para el modo de hardware real). Asegúrate de resolver dependencias con `rosdep` dentro del *workspace*.
 
 ## Compilación
