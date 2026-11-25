@@ -336,38 +336,46 @@ El Escritorio remoto comparte la sesión de escritorio que está abierta, así q
    gsettings set org.gnome.desktop.interface enable-animations false
    ```
 
-### A.4 Sin monitor conectado (pantalla virtual de 848x480 a 24 fps)
+### A.4 Sin monitor conectado (pantalla virtual de 1328x748 a 15 fps)
 
 El Escritorio remoto solo comparte una pantalla que exista. Si la Raspberry no tiene monitor, no hay pantalla y la conexión falla.
 
-**Cómo está en la imagen del kit:** el puerto **HDMI1** de la placa (en Linux se llama `HDMI-A-2`) se fuerza como conectado, y se le da un archivo **EDID** (los datos que normalmente envía un monitor para decir qué resoluciones acepta) que solo ofrece **848x480 a 24 fps** (16:9). Una pantalla pequeña y a pocos fps hace que la Raspberry use menos CPU para enviar la imagen por RDP.
+**Cómo está en la imagen del kit:** el puerto **HDMI1** de la placa (en Linux se llama `HDMI-A-2`) se fuerza como conectado, y se le da un archivo **EDID** (los datos que normalmente envía un monitor para decir qué resoluciones acepta) que solo ofrece **1328x748 a 15 fps** (casi 16:9). Una pantalla pequeña y a pocos fps hace que la Raspberry use menos CPU para enviar la imagen por RDP.
 
-> ℹ️ ¿Por qué hace falta el archivo EDID? Sin monitor, Linux no sabe qué resoluciones usar e inventa una lista estándar (1024x768, 848x480, 800x600, todas a unos 60 fps). GNOME además esconde las resoluciones menores de 800x480. Con el archivo EDID se puede elegir exactamente 848x480 a 24 fps.
+> ℹ️ ¿Por qué 1328x748? Es la pantalla más pequeña, con forma casi 16:9, en la que cabe completa la ventana de **DYNAMIXEL Wizard 2.0** (no se puede hacer más baja de 678 píxeles; 748 = 678 + la barra superior de GNOME + la barra de título). RViz también cabe con el texto a tamaño normal. ¿Por qué 15 fps? Es lo mínimo con lo que escribir y mover ventanas todavía se siente fluido; el puntero del ratón lo dibuja el PC, así que se mueve suave igual.
+
+> ℹ️ ¿Por qué hace falta el archivo EDID? Sin monitor, Linux no sabe qué resoluciones usar e inventa una lista estándar (1024x768, 848x480, 800x600, todas a unos 60 fps). Con el archivo EDID se puede elegir exactamente 1328x748 a 15 fps, y solo ese modo.
 
 Para hacerlo en una Raspberry nueva:
 
-1. Copiar el archivo EDID que está en este repositorio ([`scripts/848x480-24.bin`](scripts/848x480-24.bin), 128 bytes, un solo modo: 848x480 a 24,000 Hz):
+1. Copiar el archivo EDID que está en este repositorio ([`scripts/1328x748-15.bin`](scripts/1328x748-15.bin), 128 bytes, un solo modo: 1328x748 a 15,000 Hz):
    ```bash
    cd ~/ros2/KIT_Phantom_X_Pincher_ROS2
    sudo mkdir -p /lib/firmware/edid
-   sudo cp guias/Setup/scripts/848x480-24.bin /lib/firmware/edid/
+   sudo cp guias/Setup/scripts/1328x748-15.bin /lib/firmware/edid/
    ```
-2. Guardar una copia de `cmdline.txt` y añadir al **final de su única línea** (separado por un espacio) `drm.edid_firmware=HDMI-A-2:edid/848x480-24.bin video=HDMI-A-2:848x480@24D`:
+2. Guardar una copia de `cmdline.txt` y añadir al **final de su única línea** (separado por un espacio) `drm.edid_firmware=HDMI-A-2:edid/1328x748-15.bin video=HDMI-A-2:1328x748@15D`:
    ```bash
    sudo cp /boot/firmware/current/cmdline.txt /boot/firmware/current/cmdline.txt.bak
-   sudo sed -i '1 s#$# drm.edid_firmware=HDMI-A-2:edid/848x480-24.bin video=HDMI-A-2:848x480@24D#' /boot/firmware/current/cmdline.txt
+   sudo sed -i '1 s#$# drm.edid_firmware=HDMI-A-2:edid/1328x748-15.bin video=HDMI-A-2:1328x748@15D#' /boot/firmware/current/cmdline.txt
    cat /boot/firmware/current/cmdline.txt
    ```
-   La última línea mostrada debe terminar en `... video=HDMI-A-2:848x480@24D` y el archivo debe seguir teniendo **una sola línea**. Luego reiniciar (`sudo reboot`).
+   La última línea mostrada debe terminar en `... video=HDMI-A-2:1328x748@15D` y el archivo debe seguir teniendo **una sola línea**. Luego reiniciar (`sudo reboot`).
 3. Comprobar, sin monitor conectado:
    ```bash
    cat /sys/class/drm/card1-HDMI-A-2/status   # debe decir: connected
-   cat /sys/class/drm/card1-HDMI-A-2/modes    # debe decir solo: 848x480
+   cat /sys/class/drm/card1-HDMI-A-2/modes    # debe decir solo: 1328x748
    ```
-   y conectarse por RDP (sección 3): el escritorio debe verse a 848x480.
+   y conectarse por RDP (sección 3): el escritorio debe verse a 1328x748. Para ver los fps: *Configuración → Pantallas* debe mostrar una frecuencia de 15,00 Hz.
 
 **Deshacer:** `sudo cp /boot/firmware/current/cmdline.txt.bak /boot/firmware/current/cmdline.txt` y reiniciar.
 
-> ⚠️ **Si conectas un monitor**, usa el puerto **HDMI0** de la placa (en Linux `HDMI-A-1`), que no tiene este cambio. Un monitor en el puerto **HDMI1** recibe el modo de 848x480 a 24 fps, y la mayoría de monitores no lo muestran bien o no lo muestran. Con un monitor en HDMI0, GNOME ve dos pantallas (el monitor y la pantalla virtual de HDMI1); se puede elegir cuál usar en *Configuración → Pantallas*.
+> ℹ️ **Si la Raspberry ya tenía la pantalla anterior** (848x480 a 24 fps, archivo `848x480-24.bin`), no hace falta repetir el paso 2 completo: después del paso 1, cambiar solo el modo:
+> ```bash
+> sudo cp /boot/firmware/current/cmdline.txt /boot/firmware/current/cmdline.txt.bak
+> sudo sed -i 's|edid/848x480-24.bin video=HDMI-A-2:848x480@24D|edid/1328x748-15.bin video=HDMI-A-2:1328x748@15D|' /boot/firmware/current/cmdline.txt
+> ```
+
+> ⚠️ **Si conectas un monitor**, usa el puerto **HDMI0** de la placa (en Linux `HDMI-A-1`), que no tiene este cambio. Un monitor en el puerto **HDMI1** recibe el modo de 1328x748 a 15 fps, y la mayoría de monitores no lo muestran bien o no lo muestran. Con un monitor en HDMI0, GNOME ve dos pantallas (el monitor y la pantalla virtual de HDMI1); se puede elegir cuál usar en *Configuración → Pantallas*.
 
 > 💡 Otra opción, sin tocar `cmdline.txt`, es un "HDMI dummy plug" (emulador de pantalla), pero usa la resolución que traiga el adaptador (normalmente 1920x1080 a 60 fps), que gasta más CPU.

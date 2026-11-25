@@ -487,7 +487,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Fixed Frame: phantomx_pincher_base_link
-    Frame Rate: 24
+    Frame Rate: 15
   Name: root
   Tools:
     - Class: rviz_default_plugins/Interact
@@ -552,7 +552,7 @@ Visualization Manager:
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 407
+  Height: 679
   Hide Left Dock: false
   Hide Right Dock: true
   MotionPlanning:
@@ -568,6 +568,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: true
-  Width: 848
+  Width: 1293
   X: 0
   Y: 0

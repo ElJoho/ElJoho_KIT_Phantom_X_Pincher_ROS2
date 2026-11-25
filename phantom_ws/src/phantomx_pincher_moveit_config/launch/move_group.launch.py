@@ -368,7 +368,7 @@ def generate_launch_description():
                 joint_limits,
                 {"use_sim_time": use_sim_time},
             ],
-            # Shrink RViz's text (QT_FONT_DPI) so the window fits small screens (848x480 on the Pi).
+            # rviz_scale < 1.0 shrinks RViz's text (QT_FONT_DPI) so the window fits small screens.
             # Don't use QT_SCALE_FACTOR: with a fractional scale (e.g. 0.8) the camera
             # can't be rotated with the mouse in the 3D view (Qt6, tested on ROS 2 Lyrical).
             additional_env={"QT_FONT_DPI": rviz_font_dpi},
@@ -555,10 +555,11 @@ def generate_declared_arguments() -> List[DeclareLaunchArgument]:
         ),
         DeclareLaunchArgument(
             "rviz_scale",
-            default_value="0.75",
+            default_value="1.0",
             description=(
-                "Text size of RViz2 (QT_FONT_DPI = 96 * rviz_scale). 0.75 fits an 848x480 screen; "
-                "use 1.0 on a normal monitor. Only the text shrinks, so camera rotation keeps working."
+                "Text size of RViz2 (QT_FONT_DPI = 96 * rviz_scale). 1.0 = normal size (fits the Pi's "
+                "1328x748 screen); use 0.75 on a small screen (e.g. 848x480). Only the text shrinks, "
+                "so camera rotation keeps working."
             ),
         ),
         DeclareLaunchArgument(

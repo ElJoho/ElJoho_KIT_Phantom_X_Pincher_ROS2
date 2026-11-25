@@ -42,7 +42,7 @@ ros2 launch phantomx_pincher_bringup phantomx_pincher.launch.py --show-args
 | `use_real_robot` | `false` | `true` usa el robot real (`pincher_control`); `false` usa la simulación. |
 | `use_suction_cup` | `false` | `true` añade la ventosa al modelo. |
 | `collision_colors` | `false` | `true` usa los colores del URDF para revisar los bloques de colisión en RViz; `false` muestra los colores de los `.dae`. |
-| `rviz_scale` | `0.75` | Tamaño del texto de RViz. `0.75` cabe en la pantalla de 848x480 de la Raspberry Pi; use `1.0` en un monitor normal. |
+| `rviz_scale` | `1.0` | Tamaño del texto de RViz. `1.0` es el tamaño normal y cabe en la pantalla de 1328x748 de la Raspberry Pi; use `0.75` en una pantalla pequeña (por ejemplo 848x480). |
 | `trajectory_resample_dt` | `0.2` | Segundos entre los puntos de las trayectorias que genera MoveIt (ver abajo). |
 
 ### Puntos de la trayectoria (`trajectory_resample_dt`)
