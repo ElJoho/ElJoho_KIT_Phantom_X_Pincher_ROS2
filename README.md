@@ -221,3 +221,7 @@ Si el profesor, monitor o estudiantes fuesen a añadir o modificar el sistema op
 > 🎥 **Nota:** Este video se hizo inicialmente para la rama `jazzy` (ROS 2 Jazzy, Ubuntu 24.04), pero puede seguir siendo útil en la rama actual `main` (ROS 2 Lyrical, Ubuntu 26.04).
 
 <br>
+
+---
+
+<sub>**Contacto (solo estudiantes de la Universidad Nacional de Colombia):** si tienen dudas, pueden escribirme buscando mi nombre completo, *Johan Alejandro López Arias*, en el Gmail de la UNAL, o desde [johanalejandrolopezarias.com](https://johanalejandrolopezarias.com).</sub>
