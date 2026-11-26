@@ -549,7 +549,7 @@ Si puedes crear archivos desde ambos lados, Samba quedó funcionando correctamen
 
 ## 16. Conectar desde Linux
 
-Los pasos 1 a 9 (en la Raspberry Pi) son los mismos para Windows y Linux. Desde un PC con Linux no hay que instalar nada para el método 16.2, y para el método 16.3 solo el paquete `cifs-utils`.
+Los pasos 1 a 9 (en la Raspberry Pi) son los mismos para Windows y Linux. Desde un PC con Linux hay dos formas: montar la carpeta de la Raspberry como una carpeta normal del PC (16.2, recomendado; solo necesita el paquete `cifs-utils`) o abrirla en el explorador de archivos (16.3, no hay que instalar nada).
 
 ### 16.1 Red del PC
 
@@ -562,66 +562,92 @@ ping -c 3 192.168.10.2
 nc -zv 192.168.10.2 445        # debe decir "succeeded" u "open"
 ```
 
-### 16.2 Método recomendado: el explorador de archivos (Archivos / Nautilus)
+### 16.2 Método recomendado: montarla como una carpeta normal (`cifs`)
 
-1. Abre **Archivos**.
-2. En el panel izquierdo, haz clic en **Otras ubicaciones**.
-3. Abajo, en **Conectar al servidor**, escribe:
+Los archivos de la Raspberry aparecen en una carpeta del PC (`~/raspberrypi`) y se pueden abrir con cualquier programa (VS Code, el explorador de archivos, la terminal) como si fueran locales.
 
-   ```text
-   smb://192.168.10.2/unpi
-   ```
-
-4. Clic en **Conectar**. Elige **Usuario registrado** y escribe:
-
-   | Campo | Valor |
-   |---|---|
-   | Nombre de usuario | `unpi` |
-   | Dominio | `WORKGROUP` (el que aparece por defecto) |
-   | Contraseña | `unpi` |
-
-   Elige **Recordar para siempre** si no quieres escribirla cada vez.
-
-5. La carpeta `/home/unpi` de la Raspberry aparece en el panel izquierdo. Para desconectarla, clic en el botón de expulsar ⏏ junto a su nombre.
-
-> 💡 Para tenerla a mano: con la carpeta abierta, **Ctrl + D** la añade a los marcadores del panel izquierdo.
-
-En otros escritorios (KDE Dolphin, Thunar, etc.) la dirección es la misma: `smb://192.168.10.2/unpi`.
-
-Mientras está conectada, la carpeta también existe en la terminal, en `/run/user/$(id -u)/gvfs/smb-share:server=192.168.10.2,share=unpi`.
-
-### 16.3 Método alternativo: montarla como una carpeta normal (`cifs`)
-
-Útil para abrirla en VS Code u otros programas como si fuera una carpeta local:
+**Montar** (en una terminal del PC):
 
 ```bash
 sudo apt install cifs-utils          # solo la primera vez
 mkdir -p ~/raspberrypi               # carpeta de montaje (solo la primera vez)
 sudo mount -t cifs //192.168.10.2/unpi ~/raspberrypi -o username=unpi,uid=$(id -u),gid=$(id -g)
+ls ~/raspberrypi
 ```
 
-Pide la contraseña de Samba (`unpi`). Luego los archivos de la Raspberry aparecen en `~/raspberrypi`.
+Primero pide la contraseña de `sudo` (la de tu PC) y luego la contraseña de Samba:
+
+```text
+Password for unpi@//192.168.10.2/unpi:
+```
+
+Escribe `unpi` (no se ve mientras escribes) y presiona Enter. Si todo salió bien, `ls ~/raspberrypi` muestra las carpetas de la Raspberry:
+
+```text
+Desktop  Documents  Downloads  Music  Pictures  Public  ROBOTIS  Templates  Videos  ros2  snap
+```
+
+y el repositorio del kit queda en `~/raspberrypi/ros2/KIT_Phantom_X_Pincher_ROS2`.
 
 | Opción | Función |
 |---|---|
+| `//192.168.10.2/unpi` | IP de la Raspberry y nombre de la carpeta compartida (`/home/unpi`). |
+| `~/raspberrypi` | Carpeta del PC donde aparecen los archivos. Mientras no esté montada, está vacía. |
 | `username=unpi` | Usuario de Samba. |
 | `uid=$(id -u),gid=$(id -g)` | Los archivos aparecen como tuyos en el PC, así puedes editarlos sin `sudo`. |
 
-Para desmontarla (por ejemplo, antes de desconectar el cable):
+**Desmontar** (cuando termines, y siempre antes de desconectar el cable o apagar la Raspberry):
 
 ```bash
+cd ~                          # salir de la carpeta si una terminal está dentro de ella
 sudo umount ~/raspberrypi
 ```
 
-> ⚠️ Si desconectas el cable o apagas la Raspberry sin desmontar, los programas que tengan abierta la carpeta pueden quedarse esperando. Desmonta primero; si ya pasó, usa `sudo umount -l ~/raspberrypi`.
+> ℹ️ **Notas sobre desmontar:**
+> - Si dice `target is busy`, algún programa todavía tiene la carpeta abierta: una terminal dentro de `~/raspberrypi` (usa `cd ~`), VS Code, el explorador de archivos, etc. Ciérralos y vuelve a intentarlo.
+> - Si desconectaste el cable o apagaste la Raspberry sin desmontar, los programas que usaban la carpeta pueden quedarse esperando. Desmóntala con `sudo umount -l ~/raspberrypi`.
+> - Para comprobar si está montada: `mount | grep raspberrypi` (si no muestra nada, no está montada).
+> - El montaje no se mantiene al reiniciar el PC: para volver a usarla, repite el comando `sudo mount ...` de arriba. La carpeta `~/raspberrypi` no hace falta crearla otra vez.
+
+### 16.3 Método alternativo: el explorador de archivos (Archivos / Nautilus)
+
+No hay que instalar nada: Linux detecta solo la Raspberry en la red.
+
+1. Abre **Archivos** y, en el panel izquierdo, haz clic en **Red** (*Network*). En **Disponible en la red actual** (*Available on Current Network*) aparece la Raspberry como **UNPI** (`smb://unpi.local:445/`). Haz clic en ella.
+
+   ![La Raspberry aparece como UNPI en Red](./img/17.png)
+
+2. En **Autenticación requerida** (*Authentication Required*) escribe `unpi` en los tres campos → **Conectar** (*Connect*):
+
+   | Campo | Valor |
+   |---|---|
+   | Nombre de usuario (*Username*) | `unpi` |
+   | Dominio (*Domain*) | `unpi` |
+   | Contraseña (*Password*) | `unpi` |
+
+   Elige **Recordar para siempre** (*Remember forever*) si no quieres escribirla cada vez.
+
+   ![Usuario, dominio y contraseña unpi](./img/18.png)
+
+3. Aparecen las carpetas compartidas de la Raspberry. Abre **unpi**: es la carpeta `/home/unpi` (`print$` es para impresoras, no la uses).
+
+   ![Carpetas compartidas de la Raspberry](./img/19.png)
+
+4. Para desconectarla, clic en el botón de expulsar ⏏ junto a su nombre en el panel izquierdo.
+
+> 💡 Si **UNPI** no aparece en **Red**, escribe la dirección directamente: en Archivos presiona **Ctrl + L**, escribe `smb://192.168.10.2/unpi` y presiona Enter. Con la carpeta abierta, **Ctrl + D** la añade a los marcadores del panel izquierdo.
+
+En otros escritorios (KDE Dolphin, Thunar, etc.) la dirección es la misma: `smb://192.168.10.2/unpi`.
 
 ### 16.4 Verificación
 
-Desde Linux, crea un archivo en la carpeta conectada (en Archivos o en `~/raspberrypi`), por ejemplo `prueba_desde_linux.txt`, y en la Raspberry comprueba que aparece:
+Desde Linux, crea un archivo en la carpeta de la Raspberry (con el método 16.2: `touch ~/raspberrypi/prueba_desde_linux.txt`), y en la Raspberry comprueba que aparece:
 
 ```bash
 ls -l /home/unpi/prueba_desde_linux.txt
 ```
+
+Luego puedes borrarlo (`rm ~/raspberrypi/prueba_desde_linux.txt`).
 
 ---
 
@@ -837,9 +863,9 @@ Por eso, para esta guía, el método recomendado en Windows 11 es montar directa
 | Montar unidad temporal          | `net use Z: \\192.168.10.2\unpi /user:unpi unpi /persistent:no`  |
 | Montar unidad permanente        | `net use Z: \\192.168.10.2\unpi /user:unpi unpi /persistent:yes` |
 | Ruta para Explorador            | `\\192.168.10.2\unpi`                                            |
-| Conectar desde Linux (Archivos) | `smb://192.168.10.2/unpi`                                        |
 | Montar desde Linux              | `sudo mount -t cifs //192.168.10.2/unpi ~/raspberrypi -o username=unpi,uid=$(id -u),gid=$(id -g)` |
 | Desmontar en Linux              | `sudo umount ~/raspberrypi`                                      |
+| Conectar desde Linux (Archivos) | `smb://192.168.10.2/unpi`                                        |
 
 ---
 

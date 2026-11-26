@@ -175,33 +175,50 @@ Debe responder. Si no responde, revisa el cable en ambos extremos y la IP del PC
 
 **Paso 1: instalar Remmina** (si no lo tienes):
 
-- Ubuntu / Debian: `sudo apt install remmina`
+- Ubuntu: desde el **Centro de aplicaciones** (App Center), buscando *Remmina*, o con `sudo snap install remmina`. También `sudo apt install remmina`.
 - Fedora: `sudo dnf install remmina`
 - Cualquier distribución: `flatpak install flathub org.remmina.Remmina`
 
-En Ubuntu y Debian, el paquete `remmina` ya incluye el soporte para RDP.
+Todas estas versiones ya incluyen el soporte para RDP.
 
-**Paso 2: crear un perfil de conexión** (solo la primera vez):
+**Paso 2: conectarse.**
 
-1. Abre **Remmina** y haz clic en **+** (arriba a la izquierda) para crear un perfil.
-2. Llena la pestaña **Básico**:
+1. Abre **Remmina** (en Ubuntu: tecla **Super** y escribe `rem`).
 
-   | Campo | Valor |
-   |---|---|
-   | Nombre | `Raspberry Pi kit` (cualquier nombre) |
-   | Protocolo | **RDP - Remote Desktop Protocol** |
-   | Servidor | `192.168.10.2` |
-   | Nombre de usuario | `unpi` |
-   | Contraseña | `unpi` |
-   | Profundidad de color | **Automático (32 bpp)** |
+   ![Abrir Remmina desde el buscador de aplicaciones](./img/13.png)
 
-3. Clic en **Guardar y conectar**.
+2. Si Remmina se instaló como Snap (Centro de aplicaciones), la primera vez muestra el aviso **Remmina Snap package** con unos permisos opcionales (guardar contraseñas en el llavero, impresoras, etc.). Para conectarse a la Raspberry no hacen falta: clic en **Close** (puedes marcar *Do not show this message again*).
+
+   ![Aviso de Remmina Snap package](./img/14.png)
+
+3. En la ventana principal, deja **RDP** en el selector de la izquierda, escribe `192.168.10.2` en la barra y presiona **Enter**.
+
+   ![Conexión rápida en Remmina con RDP y 192.168.10.2](./img/15.png)
+
+4. En **Enter RDP authentication credentials** escribe usuario `unpi` y contraseña `unpi` (deja **Domain** vacío) → **OK**. Con **Save password** activado no la vuelve a pedir.
+
+   ![Credenciales RDP de la Raspberry en Remmina](./img/16.png)
+
+> 💡 Los textos de Remmina pueden aparecer en inglés o en español según el idioma del PC (por ejemplo *Enter RDP authentication credentials*, *Username*, *Password*).
+
+**(Opcional) Guardar un perfil**, para no escribir la IP cada vez: en Remmina, clic en **+** (arriba a la izquierda) y llena:
+
+| Campo | Valor |
+|---|---|
+| Name (Nombre) | `Raspberry Pi kit` (cualquier nombre) |
+| Protocol (Protocolo) | **RDP - Remote Desktop Protocol** |
+| Server (Servidor) | `192.168.10.2` |
+| Username (Nombre de usuario) | `unpi` |
+| Password (Contraseña) | `unpi` |
+| Color depth (Profundidad de color) | **Automatic (32 bpp)** |
+
+Luego **Save and Connect** (*Guardar y conectar*). Las siguientes veces basta con doble clic en el perfil de la lista.
 
 > ⚠️ **No uses una profundidad de color de 16 bits.** El Escritorio remoto de GNOME necesita el modo gráfico GFX (32 bits) y cierra la conexión si el cliente no lo usa.
 
 **Paso 3: aceptar el certificado.** La primera vez Remmina muestra el certificado de la Raspberry (el del anexo A.2) y pregunta si confías en él → **Sí / Aceptar**. Remmina lo recuerda por dirección: si la IP de la Raspberry cambia, volverá a preguntar.
 
-**Las siguientes veces:** abre Remmina y haz doble clic en el perfil **Raspberry Pi kit** de la lista. Recuerda activar antes la conexión de red "Raspberry Pi kit" (sección 2.2).
+**Las siguientes veces:** abre Remmina y escribe otra vez `192.168.10.2` (o haz doble clic en el perfil guardado). Recuerda activar antes la conexión de red "Raspberry Pi kit" (sección 2.2).
 
 **Durante la conexión**, la barra de herramientas de Remmina (a un lado de la ventana) permite:
 
