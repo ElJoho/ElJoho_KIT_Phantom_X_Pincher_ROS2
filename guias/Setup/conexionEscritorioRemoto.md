@@ -151,10 +151,24 @@ Debe responder. Si no responde, revisa el cable en ambos extremos y la IP del PC
 
 ### 3.1 Desde Windows (Conexión a Escritorio remoto)
 
-1. Presionar **Windows + R**, escribir `mstsc` y presionar Enter (o buscar *"Conexión a Escritorio remoto"* en el menú de inicio).
+1. Presionar **Windows + R**, escribir `mstsc` y presionar **Aceptar** (o buscar *"Conexión a Escritorio remoto"* en el menú de inicio).
+
+   ![Ejecutar mstsc con Windows + R](./img/9.png)
+
+   > ⚠️ Si Windows dice que no encuentra `mstsc`, la aplicación no está instalada (desde Windows 11 23H2 se puede desinstalar, y en algunos equipos falta). Ver la sección 4.
+
 2. En **Equipo** escribir `192.168.10.2` → **Conectar**.
-3. Usuario `unpi`, contraseña `unpi`. Si aparece otra cuenta ya escrita: **Más opciones → Usar otra cuenta**.
-4. Aparece una advertencia de certificado (es el certificado de la Raspberry, anexo A.2) → **Sí** (puedes marcar "No volver a preguntar").
+
+   ![Conexión a Escritorio remoto con la IP de la Raspberry](./img/10.png)
+
+3. En **Escribir las credenciales**: usuario `unpi`, contraseña `unpi` → **Aceptar**. Si aparece otra cuenta ya escrita: **Más opciones → Usar otra cuenta**.
+
+   ![Credenciales de la Raspberry](./img/11.png)
+
+4. Aparece una advertencia de certificado (es el certificado de la Raspberry, anexo A.2) → **Sí** (puedes marcar "No volver a preguntarme sobre conexiones a este equipo").
+
+   ![Advertencia del certificado de la Raspberry](./img/12.png)
+
 5. Se abre el escritorio de la Raspberry Pi; úsalo con tu mouse y teclado.
 
 ### 3.2 Desde Linux (Remmina)
@@ -202,6 +216,7 @@ En Ubuntu y Debian, el paquete `remmina` ya incluye el soporte para RDP.
 
 | Problema | Qué hacer |
 |---|---|
+| (Windows) *"Windows no puede encontrar 'mstsc'"* | La aplicación Conexión a Escritorio remoto no está instalada. Primero prueba **Windows + R** → `C:\Windows\System32\mstsc.exe`. Si tampoco abre, descarga el instalador oficial de Microsoft (64 bits en casi todos los PC) desde [esta página](https://learn.microsoft.com/es-es/windows-server/remote/remote-desktop-services/remotepc/uninstall-remote-desktop-connection), ejecútalo con una cuenta de administrador y vuelve a la sección 3.1. |
 | `ping 192.168.10.2` no responde | Revisa el cable y la IP del PC (sección 2). En la Raspberry: `hostname -I` debe mostrar `192.168.10.2`. |
 | Remmina dice que falló el inicio de sesión, o la conexión se cierra al entrar | La pantalla de la Raspberry puede estar bloqueada: desbloquéala con un teclado conectado a la Raspberry y revisa el anexo A.3. Revisa también que la profundidad de color de Remmina no sea de 16 bits. |
 | (Linux) `ping` no responde aunque el cable está bien | Revisa que la conexión activa en el puerto Ethernet sea **Raspberry Pi kit** (`nmcli device status`) y actívala con `nmcli connection up "Raspberry Pi kit"`. |
